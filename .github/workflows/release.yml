@@ -35,3 +35,31 @@ jobs:
           else
             gh release create "$RELEASE_TAG" release/echo-pc.zip --verify-tag --title "Echo $RELEASE_TAG" --generate-notes
           fi
+
+  mac-app:
+    needs: release
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Build self-contained app
+        env:
+          ECHO_VERSION: ${{ inputs.tag || github.ref_name }}
+        run: |
+          python -m pip install uv==0.13.6
+          uv python install 3.12
+          scripts/build_mac_app.sh "$(uv python find --managed-python 3.12)"
+      - name: Smoke test bundled transcription
+        run: |
+          "release/mac/Echo PC.app/Contents/MacOS/Echo PC" --transcribe web/demo.wav --model tiny --language en --output release/smoke --models release/smoke-models
+          test -s release/smoke/practice.echo.zip
+      - name: Publish app ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: gh release upload "$RELEASE_TAG" release/echo-pc-mac-arm64.zip --clobber

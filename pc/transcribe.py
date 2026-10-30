@@ -44,7 +44,7 @@ def run(args):
         raise ValueError('음성 파일을 찾을 수 없습니다.')
     print(f'모델 준비: {args.model}. 첫 실행은 수 GB를 다운로드할 수 있습니다.',flush=True)
     model=WhisperModel(args.model,device=args.device,compute_type='float16' if args.device=='cuda' else 'int8',
-                       cpu_threads=max(1,min(8,(os.cpu_count() or 4)-1)),download_root=str(Path(__file__).parent/'models'))
+                       cpu_threads=max(1,min(8,(os.cpu_count() or 4)-1)),download_root=args.models)
     print('음성을 읽는 중…',flush=True)
     pcm=decode_audio(str(audio),sampling_rate=16000)
     if args.seconds:
@@ -79,7 +79,7 @@ def main():
     p.add_argument('audio');p.add_argument('--output',required=True)
     p.add_argument('--model',choices=['large-v3','turbo','medium','small','tiny'],default='large-v3')
     p.add_argument('--language',default='ja');p.add_argument('--device',choices=['cpu','cuda'],default='cpu')
-    p.add_argument('--seconds',type=float,default=0)
+    p.add_argument('--seconds',type=float,default=0);p.add_argument('--models',default=str(Path(__file__).parent/'models'))
     args=p.parse_args()
     if args.seconds<0:
         p.error('--seconds must be nonnegative')

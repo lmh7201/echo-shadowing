@@ -1,5 +1,6 @@
 """Echo PC: a local desktop front end; recognition runs in a cancellable process."""
 from datetime import datetime
+import multiprocessing
 import os
 from pathlib import Path
 import queue
@@ -13,6 +14,9 @@ from podcast_dialog import PodcastDialog
 
 ROOT=Path(__file__).resolve().parent
 MAC=sys.platform=='darwin'
+FROZEN=getattr(sys,'frozen',False)
+# The self-contained Mac app bundle may be read-only or translocated, so its data lives in Application Support.
+DATA=Path.home()/'Library'/'Application Support'/'Echo PC' if FROZEN else ROOT
 
 
 class App:
@@ -37,11 +41,12 @@ class App:
         actions=ttk.Frame(body);actions.pack(fill='x',pady=16)
         self.start=ttk.Button(actions,text='자막 · 연습 파일 만들기',command=self.begin);self.start.pack(side='left')
         self.cancel=ttk.Button(actions,text='중지',command=self.stop,state='disabled');self.cancel.pack(side='left',padx=8)
-        self.open=ttk.Button(actions,text='결과 폴더 열기',command=self.open_output,state='disabled');self.open.pack(side='right')
+        ttk.Button(actions,text='결과 폴더 열기',command=self.open_output).pack(side='right')
         self.progress=ttk.Progressbar(body,maximum=100);self.progress.pack(fill='x')
         self.log=tk.Text(body,wrap='word',height=12,font=('Menlo',12) if MAC else ('Consolas',10));self.log.pack(fill='both',expand=True,pady=(12,0))
-        self.append('준비됐어요. 원본 음성은 외부로 전송하지 않습니다.\nPython 3.10~3.12 64비트 권장. 결과는 프로그램 폴더의 results 안에 저장됩니다.')
+        self.append('준비됐어요. 원본 음성은 외부로 전송하지 않습니다.\n'+(f'결과는 {DATA/"results"} 안에 저장됩니다.' if FROZEN else 'Python 3.10~3.12 64비트 권장. 결과는 프로그램 폴더의 results 안에 저장됩니다.'))
         root.protocol('WM_DELETE_WINDOW',self.close);root.after(150,self.poll)
+        if MAC:root.createcommand('tk::mac::Quit',self.close)  # Cmd-Q bypasses WM_DELETE_WINDOW
 
     def append(self,text):
         self.log.insert('end',text+'\n');self.log.see('end')
@@ -55,16 +60,16 @@ class App:
             self.podcast_dialog.window.lift();return
         def downloaded(path):
             self.audio.set(str(path));self.append(f'다운로드 완료: {path}\n모델과 범위를 선택하고 자막 만들기를 누르세요.')
-        self.podcast_dialog=PodcastDialog(self.root,ROOT,downloaded)
+        self.podcast_dialog=PodcastDialog(self.root,DATA,downloaded)
 
     def begin(self):
         if self.process:return
         source=Path(self.audio.get())
         if not source.is_file():messagebox.showerror('음성 선택','음성 파일을 먼저 선택해 주세요.');return
-        self.output=ROOT/'results'/f'{unicodedata.normalize("NFC",source.stem)[:50]}_{datetime.now():%Y%m%d_%H%M%S_%f}'
-        command=[sys.executable,'-u',str(ROOT/'transcribe.py'),str(source),'--output',str(self.output),'--model',self.model.get(),'--language',self.lang.get(),'--device',self.device.get()]
+        self.output=DATA/'results'/f'{unicodedata.normalize("NFC",source.stem)[:50]}_{datetime.now():%Y%m%d_%H%M%S_%f}'
+        command=([sys.executable,'--transcribe'] if FROZEN else [sys.executable,'-u',str(ROOT/'transcribe.py')])+[str(source),'--output',str(self.output),'--models',str(DATA/'models'),'--model',self.model.get(),'--language',self.lang.get(),'--device',self.device.get()]
         if self.scope.get()=='앞 30초 시험':command+=['--seconds','30']
-        self.log.delete('1.0','end');self.progress['value']=0;self.start['state']='disabled';self.cancel['state']='normal';self.open['state']='disabled'
+        self.log.delete('1.0','end');self.progress['value']=0;self.start['state']='disabled';self.cancel['state']='normal'
         env=os.environ.copy();env['PYTHONUTF8']='1';env['PYTHONIOENCODING']='utf-8'
         try:
             self.process=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace',env=env,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
@@ -87,18 +92,18 @@ class App:
                 else:self.append(value)
             else:
                 self.process=None;self.start['state']='normal';self.cancel['state']='disabled'
-                if value==0:self.open['state']='normal'
-                else:self.append(f'종료 코드: {value}. 위 오류를 확인하거나 설정을 바꿔 다시 실행하세요.')
+                if value!=0:self.append(f'종료 코드: {value}. 위 오류를 확인하거나 설정을 바꿔 다시 실행하세요.')
         self.root.after(150,self.poll)
 
     def stop(self):
         if self.process and self.process.poll() is None:self.process.terminate();self.append('중지 중…')
 
     def open_output(self):
-        if self.output and self.output.exists():
-            if sys.platform=='win32':os.startfile(self.output)
-            elif sys.platform=='darwin':subprocess.Popen(['open',str(self.output)])
-            else:subprocess.Popen(['xdg-open',str(self.output)])
+        target=self.output if self.output and self.output.exists() else DATA/'results'
+        target.mkdir(parents=True,exist_ok=True)
+        if sys.platform=='win32':os.startfile(target)
+        elif sys.platform=='darwin':subprocess.Popen(['open',str(target)])
+        else:subprocess.Popen(['xdg-open',str(target)])
 
     def close(self):
         if self.podcast_dialog:self.podcast_dialog.close()
@@ -106,4 +111,8 @@ class App:
 
 
 if __name__=='__main__':
+    multiprocessing.freeze_support()  # frozen app: helpers such as the resource tracker re-run this executable
+    if sys.argv[1:2]==['--transcribe']:
+        import transcribe;sys.argv.pop(1);sys.exit(transcribe.main())
+    DATA.mkdir(parents=True,exist_ok=True)
     root=tk.Tk();App(root);root.mainloop()

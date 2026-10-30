@@ -33,7 +33,11 @@ Windows 시작하기
 - 모바일에서 새로고침하면 현재 연습은 사라집니다. 저장 파일은 보관해주세요.
 
 macOS 시작하기
-Apple Silicon Mac은 macOS 14 이상, Intel Mac은 macOS 13 이상이 필요합니다.
+Apple Silicon Mac은 Python 설치가 필요 없는 Mac 앱을 권장합니다. macOS 14 이상이 필요합니다.
+릴리스 페이지에서 echo-pc-mac-arm64.zip을 받아 압축을 풀고 Echo PC 앱을 실행하세요.
+처음 열 때 경고가 나오면 아래 3번과 같이 [그래도 열기]를 누릅니다.
+
+Intel Mac이거나 Python으로 직접 실행하려면 아래 순서를 따릅니다. Intel Mac은 macOS 13 이상이 필요합니다.
 1. python.org에서 Python 3.12 macOS 설치 파일을 받아 설치합니다.
    Homebrew Python을 쓴다면 brew install python-tk@3.12 로 Tkinter도 설치합니다.
 2. 다운로드한 ZIP을 쓰기 가능한 폴더에 모두 압축 해제합니다.
