@@ -27,12 +27,24 @@ Windows 시작하기
 실행 조건
 - API 키나 유료 서비스 없이 기기 내에서 처리합니다. 첫 모델 다운로드에는 인터넷과 수 GB 디스크가 필요합니다.
 - CPU는 별도 GPU 없이 실행되지만 긴 음성에서 오래 걸립니다. large-v3는 넉넉한 메모리가 필요합니다.
-- cuda는 호환 NVIDIA GPU와 CUDA/cuDNN을 직접 구성한 경우에만 선택합니다. 기본은 cpu입니다.
+- cuda는 호환 NVIDIA GPU와 CUDA/cuDNN을 직접 구성한 경우에만 선택합니다. 기본은 cpu이며, Mac은 cpu만 지원합니다.
 - 모델은 models 폴더에 저장되어 다음에 재사용됩니다. 최초 다운로드 때 진행 표시가 잠시 멈춰 보일 수 있습니다.
 - 일본어 단어 경계와 시간은 AI 추정치이며 정확한 정답 자막을 보장하지 않습니다.
 - 모바일에서 새로고침하면 현재 연습은 사라집니다. 저장 파일은 보관해주세요.
 
-macOS/Linux
+macOS 시작하기
+Apple Silicon Mac은 macOS 14 이상, Intel Mac은 macOS 13 이상이 필요합니다.
+1. python.org에서 Python 3.12 macOS 설치 파일을 받아 설치합니다.
+   Homebrew Python을 쓴다면 brew install python-tk@3.12 로 Tkinter도 설치합니다.
+2. 다운로드한 ZIP을 쓰기 가능한 폴더에 모두 압축 해제합니다.
+3. start.command를 두 번 클릭합니다. 터미널 창이 열리고, 첫 실행은 필요한 라이브러리를 설치합니다.
+   'Apple이 확인할 수 없습니다'라는 경고가 나오면 [완료]를 누른 뒤
+   시스템 설정 → 개인정보 보호 및 보안 → 아래쪽의 [그래도 열기]를 누르고 다시 실행합니다.
+   경고 없이 실행하려면 터미널에서 이 폴더로 이동한 뒤 bash start.command 를 입력해도 됩니다.
+   터미널이 다운로드 폴더 등에 접근하려고 한다는 창이 나오면 허용합니다.
+4. 이후 사용법은 Windows 시작하기의 4번부터와 같습니다. 실행 장치는 cpu만 지원합니다.
+
+Linux
 Python 3.10 이상과 Tkinter가 필요합니다. 터미널에서 이 폴더로 이동한 뒤:
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt

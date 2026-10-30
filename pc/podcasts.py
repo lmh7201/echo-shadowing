@@ -7,6 +7,7 @@ import html
 import json
 from pathlib import Path
 import re
+import ssl
 import threading
 from urllib.parse import urlparse,unquote
 from urllib.request import Request,urlopen
@@ -16,6 +17,11 @@ import xml.etree.ElementTree as ET
 DEFAULT_URL='https://podcasts.apple.com/kr/podcast/id1480155677'
 MAX_FEED=20*1024*1024
 MAX_AUDIO=2*1024*1024*1024
+try:
+    import truststore
+    TLS=truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # OS trust store: python.org macOS builds ship without CA roots
+except ImportError:
+    TLS=ssl.create_default_context()
 
 
 @dataclass(frozen=True)
@@ -35,7 +41,7 @@ def http_url(url):
 
 
 def request(url):
-    return urlopen(Request(http_url(url),headers={'User-Agent':'EchoPC/1.1 (public podcast reader)','Accept':'*/*'}),timeout=30)
+    return urlopen(Request(http_url(url),headers={'User-Agent':'EchoPC/1.1 (public podcast reader)','Accept':'*/*'}),timeout=30,context=TLS)
 
 
 def read_small(url,limit=MAX_FEED):

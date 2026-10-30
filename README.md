@@ -9,7 +9,7 @@
 ### PC에서 자막 만들기 → 모바일에서 연습하기
 
 1. 웹페이지의 **PC용 생성 도구 다운로드** 또는 이 저장소 **Releases**에서 `echo-pc.zip`을 받습니다.
-2. 압축을 풀고 `start.cmd`를 실행합니다. Python 3.12 64비트가 필요합니다.
+2. 압축을 풀고 Windows는 `start.cmd`, macOS는 `start.command`를 실행합니다. Python 3.12 64비트가 필요합니다. macOS에서 확인되지 않은 개발자 경고가 나오면 [pc/README.txt](pc/README.txt)의 macOS 안내를 따릅니다.
 3. **팟캐스트에서 음성 받기**에서 Apple Podcasts 공유 링크 또는 공개 RSS를 넣고 회차를 선택합니다. YUYU 링크는 기본으로 준비되어 있습니다.
 4. Large-v3 또는 Turbo와 음성 언어를 선택합니다. 먼저 앞 30초를 시험한 뒤 전체 음성을 처리합니다.
 5. 결과 폴더의 `practice.echo.zip`을 휴대폰으로 옮깁니다.
@@ -57,6 +57,7 @@ PC 도구의 추가 실행 방법은 [pc/README.txt](pc/README.txt)를 참고하
 - 음성 인식은 기기에서 처리합니다. 모델 다운로드에는 인터넷과 디스크 공간이 필요합니다.
 - PC 모델은 `pc/models/`, 팟캐스트 원본은 `pc/downloads/`, 결과는 `pc/results/`에 저장합니다. 이 폴더들은 Git에서 제외합니다.
 - CPU로 실행할 수 있습니다. CUDA는 호환 NVIDIA GPU와 cuBLAS·cuDNN을 별도로 구성한 경우에 사용합니다.
+- macOS는 CPU로 실행합니다. Apple Silicon Mac은 macOS 14 이상, Intel Mac은 macOS 13 이상이 필요합니다.
 - 원본 음성이 180MB를 넘으면 연습 ZIP 대신 JSON 자막과 원본 음성을 별도로 옮깁니다.
 - 새로고침하면 현재 연습은 사라집니다. 연습 파일을 보관하세요.
 - 음성 인식 내용, 일본어 단어 경계, 시간은 AI 추정치입니다.

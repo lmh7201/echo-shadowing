@@ -7,10 +7,12 @@ import subprocess
 import sys
 import threading
 import tkinter as tk
+import unicodedata
 from tkinter import ttk,filedialog,messagebox
 from podcast_dialog import PodcastDialog
 
 ROOT=Path(__file__).resolve().parent
+MAC=sys.platform=='darwin'
 
 
 class App:
@@ -26,17 +28,18 @@ class App:
         ttk.Button(body,text='↧ 팟캐스트에서 음성 받기 · Apple Podcasts / RSS',command=self.podcasts).pack(anchor='w',pady=(10,0))
         options=ttk.Frame(body);options.pack(fill='x',pady=16)
         self.model=tk.StringVar(value='large-v3');self.lang=tk.StringVar(value='ja');self.scope=tk.StringVar(value='앞 30초 시험');self.device=tk.StringVar(value='cpu')
-        for i,(label,var,values) in enumerate([('모델',self.model,['large-v3','turbo','medium']),('언어',self.lang,['ja','en','ko','zh','es','fr','de','auto']),('범위',self.scope,['앞 30초 시험','전체 음성']),('실행 장치',self.device,['cpu','cuda'])]):
+        for i,(label,var,values) in enumerate([('모델',self.model,['large-v3','turbo','medium']),('언어',self.lang,['ja','en','ko','zh','es','fr','de','auto']),('범위',self.scope,['앞 30초 시험','전체 음성']),('실행 장치',self.device,['cpu'] if MAC else ['cpu','cuda'])]):
             ttk.Label(options,text=label).grid(row=0,column=i,sticky='w')
             ttk.Combobox(options,textvariable=var,values=values,state='readonly',width=15).grid(row=1,column=i,padx=(0,10),pady=6,sticky='ew')
             options.columnconfigure(i,weight=1)
-        ttk.Label(body,text='large-v3: 정확도 우선 / turbo: 처리 속도 우선\nCPU는 별도 그래픽카드 없이 실행됩니다. CUDA는 NVIDIA GPU와 호환 CUDA·cuDNN이 설치된 PC용입니다.\n첫 실행은 수 GB를 다운로드합니다. CPU에서는 긴 음성 처리에 오래 걸릴 수 있어요.',wraplength=660,foreground='#637061').pack(anchor='w')
+        device_note='Mac에서는 CPU로 실행됩니다. Apple Silicon의 GPU(Metal) 가속은 지원하지 않습니다.' if MAC else 'CPU는 별도 그래픽카드 없이 실행됩니다. CUDA는 NVIDIA GPU와 호환 CUDA·cuDNN이 설치된 PC용입니다.'
+        ttk.Label(body,text=f'large-v3: 정확도 우선 / turbo: 처리 속도 우선\n{device_note}\n첫 실행은 수 GB를 다운로드합니다. CPU에서는 긴 음성 처리에 오래 걸릴 수 있어요.',wraplength=660,foreground='#637061').pack(anchor='w')
         actions=ttk.Frame(body);actions.pack(fill='x',pady=16)
         self.start=ttk.Button(actions,text='자막 · 연습 파일 만들기',command=self.begin);self.start.pack(side='left')
         self.cancel=ttk.Button(actions,text='중지',command=self.stop,state='disabled');self.cancel.pack(side='left',padx=8)
         self.open=ttk.Button(actions,text='결과 폴더 열기',command=self.open_output,state='disabled');self.open.pack(side='right')
         self.progress=ttk.Progressbar(body,maximum=100);self.progress.pack(fill='x')
-        self.log=tk.Text(body,wrap='word',height=12,font=('Consolas',10));self.log.pack(fill='both',expand=True,pady=(12,0))
+        self.log=tk.Text(body,wrap='word',height=12,font=('Menlo',12) if MAC else ('Consolas',10));self.log.pack(fill='both',expand=True,pady=(12,0))
         self.append('준비됐어요. 원본 음성은 외부로 전송하지 않습니다.\nPython 3.10~3.12 64비트 권장. 결과는 프로그램 폴더의 results 안에 저장됩니다.')
         root.protocol('WM_DELETE_WINDOW',self.close);root.after(150,self.poll)
 
@@ -58,7 +61,7 @@ class App:
         if self.process:return
         source=Path(self.audio.get())
         if not source.is_file():messagebox.showerror('음성 선택','음성 파일을 먼저 선택해 주세요.');return
-        self.output=ROOT/'results'/f'{source.stem[:50]}_{datetime.now():%Y%m%d_%H%M%S_%f}'
+        self.output=ROOT/'results'/f'{unicodedata.normalize("NFC",source.stem)[:50]}_{datetime.now():%Y%m%d_%H%M%S_%f}'
         command=[sys.executable,'-u',str(ROOT/'transcribe.py'),str(source),'--output',str(self.output),'--model',self.model.get(),'--language',self.lang.get(),'--device',self.device.get()]
         if self.scope.get()=='앞 30초 시험':command+=['--seconds','30']
         self.log.delete('1.0','end');self.progress['value']=0;self.start['state']='disabled';self.cancel['state']='normal';self.open['state']='disabled'

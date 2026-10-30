@@ -1,5 +1,6 @@
 from pathlib import Path
 import tempfile
+import unicodedata
 import unittest
 import zipfile
 from transcribe import save_outputs,stamp
@@ -18,6 +19,11 @@ class OutputTests(unittest.TestCase):
             self.assertIn('00:00:01,250',(root/'out/transcript.srt').read_text('utf-8-sig'))
             with self.assertRaises(FileExistsError):
                 save_outputs(audio,root/'out',segments,'turbo','ja')
+
+    def test_mac_decomposed_title(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);audio=root/unicodedata.normalize('NFD','한국어 がくせい.wav');audio.write_bytes(b'audio')
+            self.assertEqual(save_outputs(audio,root/'out',[],'turbo','ja')['title'],'한국어 がくせい')
 
     def test_timestamp_rollover(self):
         self.assertEqual(stamp(59.9996),'00:01:00,000')

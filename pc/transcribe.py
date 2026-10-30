@@ -5,6 +5,7 @@ import mimetypes
 import os
 from pathlib import Path
 import sys
+import unicodedata
 import zipfile
 
 
@@ -19,7 +20,7 @@ def save_outputs(audio, output, segments, model, language, preview=False):
     suffix=audio.suffix.lower()
     if not suffix[1:].isalnum() or len(suffix)>9:
         suffix='.bin'
-    session={'format':'echo-session','version':1,'title':audio.stem,'audioFile':'audio'+suffix,
+    session={'format':'echo-session','version':1,'title':unicodedata.normalize('NFC',audio.stem),'audioFile':'audio'+suffix,
              'audioMime':mimetypes.guess_type(str(audio))[0] or 'application/octet-stream',
              'model':model,'language':language,'preview':preview,'segments':segments}
     serialized=json.dumps(session,ensure_ascii=False,allow_nan=False)
