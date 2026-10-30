@@ -1,2 +1,75 @@
-# echo-shadowing
-Echo · 팟캐스트 쉐도잉 스튜디오와 PC 자막 생성 도구
+# Echo · 쉐도잉 스튜디오
+
+[웹 앱 열기](https://lmh7201.github.io/echo-shadowing/) · [PC 도구 다운로드](https://github.com/lmh7201/echo-shadowing/releases/latest)
+
+팟캐스트 음성으로 스크립트를 만들고, 소리에 맞춰 문장과 단어를 따라 연습하는 도구입니다.
+
+## 사용하는 방법
+
+### PC에서 자막 만들기 → 모바일에서 연습하기
+
+1. 웹페이지의 **PC용 생성 도구 다운로드** 또는 이 저장소 **Releases**에서 `echo-pc.zip`을 받습니다.
+2. 압축을 풀고 `start.cmd`를 실행합니다. Python 3.12 64비트가 필요합니다.
+3. **팟캐스트에서 음성 받기**에서 Apple Podcasts 공유 링크 또는 공개 RSS를 넣고 회차를 선택합니다. YUYU 링크는 기본으로 준비되어 있습니다.
+4. Large-v3 또는 Turbo와 음성 언어를 선택합니다. 먼저 앞 30초를 시험한 뒤 전체 음성을 처리합니다.
+5. 결과 폴더의 `practice.echo.zip`을 휴대폰으로 옮깁니다.
+6. 모바일 웹페이지에서 **연습 파일 열기**로 ZIP을 그대로 선택합니다.
+
+음성, 스크립트, 단어 시간이 함께 복원됩니다. 모바일에서는 AI를 다시 실행할 필요가 없습니다.
+
+### 웹에서 바로 만들기
+
+음성 파일 → 언어·모델 선택 → 스크립트 만들기 순서로 사용합니다. 브라우저에서 Small/Base/Tiny 모델을 실행합니다. PC 도구는 이보다 큰 Large-v3/Turbo 모델을 지원합니다.
+
+## 지원 기능
+
+- 문장·단어 하이라이트와 클릭해서 구간 이동
+- 문장 반복, 따라 말할 시간, 속도 조절, 스크립트 가리기
+- `.echo.zip` 저장·가져오기: 음성과 단어 시간을 한 번에 이동
+- `.echo.json` 저장·가져오기: 단어 시간 유지, 음성은 별도 선택
+- SRT/VTT 가져오기와 SRT 저장: 문장 시간만 지원
+- PC에서 공개 팟캐스트 검색·다운로드, 마지막 방송 기억
+
+## GitHub Pages 배포
+
+저장소의 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 선택합니다. `main` 브랜치의 변경을 올리면 Pages 워크플로가 검사와 PC 도구 패키징을 거쳐 `web/`을 배포합니다. 배포가 끝난 주소는 **Settings → Pages** 또는 **Actions**에서 확인할 수 있습니다.
+
+`v1.0.0`처럼 `v`로 시작하는 태그를 올리면 PC 도구 ZIP을 GitHub Release로 게시합니다. 저장소와 Pages의 공개 범위는 GitHub 설정을 따릅니다. 앱 자체에는 로그인 기능이 없습니다.
+
+## 로컬 실행과 검사
+
+```sh
+python scripts/package_pc.py
+python -m http.server 8765 --directory web
+```
+
+브라우저에서 `http://localhost:8765`를 엽니다. 음성 인식은 모듈과 Web Worker를 사용하므로 HTML 파일을 직접 더블클릭하는 대신 HTTP로 실행합니다.
+
+```sh
+npm test
+python -m unittest discover -s pc -p 'test_*.py'
+```
+
+PC 도구의 추가 실행 방법은 [pc/README.txt](pc/README.txt)를 참고하세요.
+
+## 저장과 실행 조건
+
+- 음성 인식은 기기에서 처리합니다. 모델 다운로드에는 인터넷과 디스크 공간이 필요합니다.
+- PC 모델은 `pc/models/`, 팟캐스트 원본은 `pc/downloads/`, 결과는 `pc/results/`에 저장합니다. 이 폴더들은 Git에서 제외합니다.
+- CPU로 실행할 수 있습니다. CUDA는 호환 NVIDIA GPU와 cuBLAS·cuDNN을 별도로 구성한 경우에 사용합니다.
+- 원본 음성이 180MB를 넘으면 연습 ZIP 대신 JSON 자막과 원본 음성을 별도로 옮깁니다.
+- 새로고침하면 현재 연습은 사라집니다. 연습 파일을 보관하세요.
+- 음성 인식 내용, 일본어 단어 경계, 시간은 AI 추정치입니다.
+- 공개 RSS의 원본 다운로드를 지원합니다. 유료·로그인 전용 에피소드는 지원하지 않습니다.
+- 저장소의 `web/demo.wav`는 합성 예제입니다. 실제 팟캐스트 음원과 생성한 개인 자막은 포함하지 않습니다.
+
+## 구성과 외부 라이브러리
+
+- `web/`: HTML/CSS/JavaScript 웹 앱
+- `pc/`: Python/Tkinter PC 도구
+- `scripts/package_pc.py`: 정해진 PC 소스만 ZIP으로 패키징
+- Transformers.js: 브라우저 음성 인식, CDN에서 로드
+- faster-whisper: PC 음성 인식, 첫 실행 시 설치
+- fflate 0.8.2: ZIP 처리, 라이선스는 `web/vendor/fflate-LICENSE.txt`
+
+웹에서는 Google Fonts와 jsDelivr/Hugging Face에 연결합니다. 음성이나 자막을 저장소에 자동 업로드하는 기능은 없습니다.
