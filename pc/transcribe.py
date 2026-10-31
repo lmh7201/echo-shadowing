@@ -84,6 +84,9 @@ def run(args):
 
 
 def main():
+    for stream in (sys.stdout,sys.stderr):  # a cp1252 console (GitHub's Windows runner) must not crash a run over a Korean progress line
+        try:stream.reconfigure(errors='replace')
+        except (AttributeError,ValueError):pass
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('audio');p.add_argument('--output',required=True)
     p.add_argument('--model',choices=['large-v3','turbo','medium','small','tiny'],default='large-v3')
