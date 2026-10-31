@@ -12,6 +12,7 @@
    - **Windows**: `echo-pc.exe` 하나를 받아 실행합니다. Python은 필요하지 않습니다. 처음 실행할 때 'Windows의 PC 보호' 창이 나오면 **추가 정보 → 실행**을 누릅니다.
    - **Apple Silicon Mac**: `echo-pc-mac-arm64.zip`의 압축을 풀고 **Echo PC** 앱을 실행합니다. Python은 필요하지 않습니다. 처음 열 때 'Apple이 확인할 수 없습니다'라는 경고가 나오면 **시스템 설정 → 개인정보 보호 및 보안**에서 **그래도 열기**를 누릅니다.
    - **Intel Mac**: `echo-pc.zip`의 `start.command`를 실행합니다. Python 3.12가 필요하며, 자세한 내용은 [pc/README.txt](pc/README.txt)를 참고합니다.
+   - Windows exe와 Mac 앱은 실행할 때마다 GitHub Releases에서 새 버전을 확인합니다. 새 버전이 있으면 물어본 뒤 내려받아 스스로 교체하고 다시 시작합니다. **업데이트 확인** 버튼으로 직접 확인할 수도 있습니다. Python 소스 ZIP은 자동 업데이트하지 않습니다.
 2. **팟캐스트에서 음성 받기**에서 Apple Podcasts 공유 링크 또는 공개 RSS를 넣고 회차를 선택합니다.
 3. Large-v3 또는 Turbo와 음성 언어를 선택합니다. 먼저 앞 30초를 시험한 뒤 전체 음성을 처리합니다.
 4. 결과 폴더의 `음성 제목_날짜시각.echo.zip`(예: `第12回_1101_1530.echo.zip`, 제목 앞 10자 + 월일_시분)을 휴대폰으로 옮깁니다. 만들 때마다 이름이 달라 직접 바꿀 필요가 없습니다.
@@ -38,6 +39,8 @@
 
 `v1.0.0`처럼 `v`로 시작하는 태그를 올리면 PC 도구 소스 ZIP을 GitHub Release로 게시합니다. 같은 Release에 GitHub Actions의 Windows 환경에서 빌드한 단일 실행 파일(`echo-pc.exe`)과 macOS 환경에서 빌드한 Mac 앱(`echo-pc-mac-arm64.zip`)도 함께 올립니다. 두 앱 모두 코드 서명 인증서로 서명하지 않았으므로 처음 실행할 때 경고가 나옵니다. 저장소와 Pages의 공개 범위는 GitHub 설정을 따릅니다. 앱 자체에는 로그인 기능이 없습니다.
 
+빌드할 때 `ECHO_VERSION` 환경 변수의 태그가 exe와 Mac 앱 안에 들어가고, 앱은 이 값을 `releases/latest`의 `tag_name`과 비교해 더 큰 버전만 내려받습니다. 내려받은 파일은 GitHub가 알려주는 SHA-256과 대조한 뒤에만 교체합니다. 자동 업데이트는 최신 Release에 해당 플랫폼 파일이 올라간 뒤부터 동작하므로, 워크플로의 Windows·macOS 작업이 모두 끝날 때까지 기다리세요. `ECHO_VERSION` 없이 로컬에서 빌드한 앱은 버전이 `v0.0.0`이라 자동 업데이트를 하지 않습니다.
+
 ## 로컬 실행과 검사
 
 ```sh
@@ -59,6 +62,7 @@ PC 도구의 추가 실행 방법은 [pc/README.txt](pc/README.txt)를 참고하
 - 음성 인식은 기기에서 처리합니다. 모델 다운로드에는 인터넷과 디스크 공간이 필요합니다.
 - PC 모델은 `pc/models/`, 팟캐스트 원본은 `pc/downloads/`, 결과는 `pc/results/`에 저장합니다. 이 폴더들은 Git에서 제외합니다.
 - Windows `echo-pc.exe`는 모델·원본·결과를 `%LOCALAPPDATA%\Echo PC\`에, Mac 앱은 `~/Library/Application Support/Echo PC/`에 저장합니다. 앱의 **결과 폴더 열기**로 바로 열 수 있습니다.
+- 자동 업데이트는 새 파일을 같은 폴더의 `updates/`에 내려받은 뒤 실행 중인 exe 또는 앱을 교체합니다. 교체 직전 버전은 `echo-pc.old.exe` 또는 숨김 폴더 `.Echo PC.app.old`로 남았다가 다음 실행 때 지워집니다. exe나 앱이 있는 폴더에 쓸 수 없으면 업데이트에 실패하고 내려받은 파일 위치를 알려줍니다.
 - CPU로 실행할 수 있습니다. CUDA는 호환 NVIDIA GPU와 cuBLAS·cuDNN을 별도로 구성한 경우에 사용합니다.
 - macOS는 CPU로 실행합니다. Apple Silicon Mac은 macOS 14 이상, Intel Mac은 macOS 13 이상이 필요합니다.
 - 원본 음성이 180MB를 넘으면 연습 ZIP 대신 JSON 자막과 원본 음성을 별도로 옮깁니다.
@@ -71,6 +75,8 @@ PC 도구의 추가 실행 방법은 [pc/README.txt](pc/README.txt)를 참고하
 
 - `web/`: HTML/CSS/JavaScript 웹 앱
 - `pc/`: Python/Tkinter PC 도구
+- `pc/updater.py`: exe·Mac 앱의 자동 업데이트(GitHub Releases 확인, 다운로드 검증, 교체 후 재시작)
+- `pc/icons/`: 앱 아이콘(`icon.ico` Windows, `icon.icns` macOS, `icon.png` 창 아이콘). `py -3.12 scripts/make_icon.py`로 다시 그립니다(Pillow와 Georgia Italic 필요)
 - `scripts/package_pc.py`: 정해진 PC 소스만 ZIP으로 패키징
 - `scripts/build_win_exe.py`, `scripts/echo-pc-win.spec`: PyInstaller로 Python이 포함된 단일 `echo-pc.exe`를 빌드. Windows에서 `py -3.12 scripts/build_win_exe.py`로 실행
 - `scripts/build_mac_app.sh`, `scripts/echo-pc-mac.spec`: PyInstaller로 Python이 포함된 Mac 앱을 빌드. Apple Silicon Mac에서 `scripts/build_mac_app.sh python3.12`로 실행

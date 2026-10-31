@@ -1,5 +1,5 @@
 """Build release/echo-pc.exe, a single-file Windows app with Python and dependencies inside.
-Usage: py -3.12 scripts/build_win_exe.py"""
+Usage: py -3.12 scripts/build_win_exe.py  (set ECHO_VERSION=v1.3.0 so the exe can update itself from GitHub Releases)"""
 from pathlib import Path
 import shutil
 import subprocess

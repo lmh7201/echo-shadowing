@@ -47,6 +47,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Build single-file exe
+        env:
+          ECHO_VERSION: ${{ inputs.tag || github.ref_name }}
         run: python scripts/build_win_exe.py
       - name: Smoke test bundled transcription
         shell: bash
