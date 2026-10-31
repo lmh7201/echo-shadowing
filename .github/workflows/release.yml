@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           ./release/echo-pc.exe --transcribe web/demo.wav --model tiny --language en --output release/smoke --models release/smoke-models | cat
-          test -s release/smoke/practice.echo.zip
+          test -s release/smoke/demo_*.echo.zip
       - name: Publish exe
         env:
           GH_TOKEN: ${{ github.token }}
@@ -80,7 +80,7 @@ jobs:
       - name: Smoke test bundled transcription
         run: |
           "release/mac/Echo PC.app/Contents/MacOS/Echo PC" --transcribe web/demo.wav --model tiny --language en --output release/smoke --models release/smoke-models
-          test -s release/smoke/practice.echo.zip
+          test -s release/smoke/demo_*.echo.zip
       - name: Publish app ZIP
         env:
           GH_TOKEN: ${{ github.token }}

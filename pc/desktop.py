@@ -27,7 +27,7 @@ class App:
         root.title('Echo PC · 고정밀 자막 생성');root.geometry('740x650');root.minsize(630,540)
         body=ttk.Frame(root,padding=24);body.pack(fill='both',expand=True)
         ttk.Label(body,text='Echo PC · 한 번 만들고, 어디서나 연습',font=('',17,'bold')).pack(anchor='w')
-        ttk.Label(body,text='PC에서 음성·단어별 시간·자막을 하나의 연습 파일로 만듭니다.\n완성된 practice.echo.zip을 모바일 웹페이지의 ‘연습 파일 열기’로 불러오세요.',wraplength=660).pack(anchor='w',pady=(10,18))
+        ttk.Label(body,text='PC에서 음성·단어별 시간·자막을 하나의 연습 파일로 만듭니다.\n완성된 ‘음성 제목_날짜시각.echo.zip’을 모바일 웹페이지의 ‘연습 파일 열기’로 불러오세요.',wraplength=660).pack(anchor='w',pady=(10,18))
         self.audio=tk.StringVar();row=ttk.Frame(body);row.pack(fill='x')
         ttk.Entry(row,textvariable=self.audio).pack(side='left',fill='x',expand=True)
         ttk.Button(row,text='음성 선택',command=self.choose).pack(side='left',padx=(8,0))
@@ -90,7 +90,8 @@ class App:
                 if value.startswith('PROGRESS|'):
                     _,pct,text=value.split('|',2);self.progress['value']=int(pct);self.append(text)
                 elif value.startswith('DONE|'):
-                    self.progress['value']=100;self.append('완료! practice.echo.zip을 휴대폰으로 옮겨주세요.\n180MB가 넘는 음성은 원본 음성과 transcript.echo.json을 따로 옮겨주세요.')
+                    self.progress['value']=100;bundle=next(self.output.glob('*.echo.zip'),None)
+                    self.append(f'완료! {bundle.name}을 휴대폰으로 옮겨주세요.' if bundle else '완료! 음성이 180MB를 넘어 ZIP을 만들지 않았어요.\n원본 음성과 transcript.echo.json을 따로 옮겨주세요.')
                 else:self.append(value)
             else:
                 self.process=None;self.start['state']='normal';self.cancel['state']='disabled'

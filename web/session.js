@@ -21,6 +21,11 @@ export function packSession(session,audio){
  if(!/^audio\.[a-z0-9]{1,8}$/i.test(name))throw Error('음성 파일 이름이 잘못되었습니다.');
  return zipSync({'session.json':[strToU8(JSON.stringify(session)),{level:6}],[name]:[audio,{level:0}]});
 }
+// Short and distinct per save so files moved to the phone never collide: <title>_<MMDD_HHMM>.echo.zip (mirrors pc/transcribe.py).
+export function bundleName(title,when=new Date()){
+ const safe=Array.from(String(title).replace(/[\x00-\x1f<>:"/\\|?*]+/g,'_').replace(/^[ ._]+|[ ._]+$/g,'')).slice(0,10).join('').replace(/[ ._]+$/,'')||'echo',p=n=>String(n).padStart(2,'0');
+ return `${safe}_${p(when.getMonth()+1)}${p(when.getDate())}_${p(when.getHours())}${p(when.getMinutes())}.echo.zip`;
+}
 export function unpackSession(bytes){
  if(bytes.length>MAX_AUDIO+MAX_JSON)throw Error('연습 파일이 너무 큽니다. 음성과 자막 JSON을 따로 가져와 주세요.');
  let total=0;

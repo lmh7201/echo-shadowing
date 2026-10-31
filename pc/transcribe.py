@@ -1,9 +1,11 @@
 """Local Whisper transcription -> portable Echo bundle, word JSON and SRT."""
 import argparse
+from datetime import datetime
 import json
 import mimetypes
 import os
 from pathlib import Path
+import re
 import sys
 import unicodedata
 import zipfile
@@ -12,6 +14,12 @@ import zipfile
 def stamp(seconds):
     ms=max(0,round(seconds*1000))
     return f'{ms//3600000:02}:{ms//60000%60:02}:{ms//1000%60:02},{ms%1000:03}'
+
+
+def bundle_name(title, when=None):
+    """Short and distinct per run so files moved to the phone never collide: <title>_<MMDD_HHMM>.echo.zip."""
+    safe=re.sub(r'[\x00-\x1f<>:"/\\|?*]+','_',title).strip(' ._')[:10].rstrip(' ._') or 'echo'
+    return f'{safe}_{(when or datetime.now()):%m%d_%H%M}.echo.zip'
 
 
 def save_outputs(audio, output, segments, model, language, preview=False):
@@ -28,11 +36,12 @@ def save_outputs(audio, output, segments, model, language, preview=False):
     srt='\n'.join(f'{i+1}\n{stamp(s["start"])} --> {stamp(s["end"])}\n{s["text"].strip()}\n' for i,s in enumerate(segments))
     (output/'transcript.srt').write_text(srt,encoding='utf-8-sig')
     if audio.stat().st_size<=180*1024*1024:
-        tmp=output/'practice.echo.zip.tmp'
+        bundle=output/bundle_name(session['title'])
+        tmp=bundle.with_name(bundle.name+'.tmp')
         with zipfile.ZipFile(tmp,'w') as z:
             z.writestr('session.json',serialized,compress_type=zipfile.ZIP_DEFLATED)
             z.write(audio,session['audioFile'],compress_type=zipfile.ZIP_STORED)
-        tmp.replace(output/'practice.echo.zip')
+        tmp.replace(bundle)
     return session
 
 

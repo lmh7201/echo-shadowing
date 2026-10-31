@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {createSession,parseSession,packSession,unpackSession} from './web/session.js';
+import {bundleName,createSession,parseSession,packSession,unpackSession} from './web/session.js';
 import {zipSync,strToU8} from './web/vendor/fflate.js';
 const segments=JSON.parse(fs.readFileSync('web/demo.json','utf8'));
 const session=createSession(segments,{title:'日本語 <script>',audioFile:'audio.wav',audioMime:'audio/wav'});
@@ -13,6 +13,10 @@ assert.throws(()=>parseSession({...session,segments:[{start:NaN,end:1,text:'bad'
 assert.throws(()=>parseSession({...session,segments:[{start:0,end:1,text:'bad',words:[{start:0,end:3,text:'invalid'}]}]}));
 assert.throws(()=>unpackSession(zipSync({'session.json':strToU8(JSON.stringify(session))})));
 assert.throws(()=>packSession({...session,audioFile:'../secret.wav'},audio));
+const when=new Date(2026,10,1,15,30);
+assert.equal(bundleName('第12回: Q&A / 질문?',when),'第12回_ Q&A_1101_1530.echo.zip');
+assert.equal(bundleName(' ..',when),'echo_1101_1530.echo.zip');
+assert.equal(bundleName('😀'.repeat(80),when),'😀'.repeat(10)+'_1101_1530.echo.zip');
 if(process.argv[2]){
  const pc=unpackSession(new Uint8Array(fs.readFileSync(process.argv[2])));
  assert.ok(pc.session.segments.length);assert.ok(pc.session.segments.some(s=>s.words?.length));
