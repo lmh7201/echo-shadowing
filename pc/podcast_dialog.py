@@ -4,7 +4,7 @@ import queue
 import threading
 import tkinter as tk
 from tkinter import ttk,messagebox
-from podcasts import DEFAULT_URL,load_podcast,download_episode,DownloadCancelled
+from podcasts import load_podcast,download_episode,DownloadCancelled
 
 
 class PodcastDialog:
@@ -14,13 +14,13 @@ class PodcastDialog:
         body=ttk.Frame(self.window,padding=20);body.pack(fill='both',expand=True)
         ttk.Label(body,text='링크 한 번으로, 다음부터는 에피소드만 선택',font=('',15,'bold')).pack(anchor='w')
         ttk.Label(body,text='애플 팟캐스트 공유 링크 또는 공개 RSS를 넣어주세요. 마지막으로 연 방송을 기억합니다.',wraplength=760).pack(anchor='w',pady=10)
-        saved=DEFAULT_URL
+        saved=''
         try:saved=json.loads((self.folder/'podcast-source.json').read_text('utf8')).get('url',saved)
         except (OSError,ValueError,TypeError):pass
         self.url=tk.StringVar(value=saved);row=ttk.Frame(body);row.pack(fill='x')
         ttk.Entry(row,textvariable=self.url).pack(side='left',fill='x',expand=True)
         self.load=ttk.Button(row,text='에피소드 불러오기',command=self.fetch);self.load.pack(side='left',padx=(8,0))
-        self.heading=tk.StringVar(value='처음에는 YUYU 방송 링크가 준비되어 있어요.')
+        self.heading=tk.StringVar(value='링크를 넣고 에피소드 불러오기를 누르세요.')
         ttk.Label(body,textvariable=self.heading,wraplength=760).pack(anchor='w',pady=12)
         searchrow=ttk.Frame(body);searchrow.pack(fill='x');ttk.Label(searchrow,text='제목 검색 ').pack(side='left')
         self.search=tk.StringVar();ttk.Entry(searchrow,textvariable=self.search).pack(side='left',fill='x',expand=True);self.search.trace_add('write',lambda *_:self.filter())

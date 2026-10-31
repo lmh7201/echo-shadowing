@@ -14,7 +14,6 @@ from urllib.request import Request,urlopen
 import uuid
 import xml.etree.ElementTree as ET
 
-DEFAULT_URL='https://podcasts.apple.com/kr/podcast/id1480155677'
 MAX_FEED=20*1024*1024
 MAX_AUDIO=2*1024*1024*1024
 try:

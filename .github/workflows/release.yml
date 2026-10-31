@@ -36,6 +36,30 @@ jobs:
             gh release create "$RELEASE_TAG" release/echo-pc.zip --verify-tag --title "Echo $RELEASE_TAG" --generate-notes
           fi
 
+  windows-exe:
+    needs: release
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Build single-file exe
+        run: python scripts/build_win_exe.py
+      - name: Smoke test bundled transcription
+        shell: bash
+        run: |
+          ./release/echo-pc.exe --transcribe web/demo.wav --model tiny --language en --output release/smoke --models release/smoke-models | cat
+          test -s release/smoke/practice.echo.zip
+      - name: Publish exe
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: gh release upload "$env:RELEASE_TAG" release/echo-pc.exe --clobber
+
   mac-app:
     needs: release
     runs-on: macos-15

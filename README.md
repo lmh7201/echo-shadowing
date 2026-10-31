@@ -9,10 +9,10 @@
 ### PC에서 자막 만들기 → 모바일에서 연습하기
 
 1. 웹페이지의 다운로드 링크 또는 이 저장소 **Releases**에서 PC 도구를 받아 실행합니다.
-   - **Windows**: `echo-pc.zip`의 압축을 풀고 `start.cmd`를 실행합니다. Python 3.12 64비트가 필요합니다.
+   - **Windows**: `echo-pc.exe` 하나를 받아 실행합니다. Python은 필요하지 않습니다. 처음 실행할 때 'Windows의 PC 보호' 창이 나오면 **추가 정보 → 실행**을 누릅니다.
    - **Apple Silicon Mac**: `echo-pc-mac-arm64.zip`의 압축을 풀고 **Echo PC** 앱을 실행합니다. Python은 필요하지 않습니다. 처음 열 때 'Apple이 확인할 수 없습니다'라는 경고가 나오면 **시스템 설정 → 개인정보 보호 및 보안**에서 **그래도 열기**를 누릅니다.
    - **Intel Mac**: `echo-pc.zip`의 `start.command`를 실행합니다. Python 3.12가 필요하며, 자세한 내용은 [pc/README.txt](pc/README.txt)를 참고합니다.
-2. **팟캐스트에서 음성 받기**에서 Apple Podcasts 공유 링크 또는 공개 RSS를 넣고 회차를 선택합니다. YUYU 링크는 기본으로 준비되어 있습니다.
+2. **팟캐스트에서 음성 받기**에서 Apple Podcasts 공유 링크 또는 공개 RSS를 넣고 회차를 선택합니다.
 3. Large-v3 또는 Turbo와 음성 언어를 선택합니다. 먼저 앞 30초를 시험한 뒤 전체 음성을 처리합니다.
 4. 결과 폴더의 `practice.echo.zip`을 휴대폰으로 옮깁니다.
 5. 모바일 웹페이지에서 **연습 파일 열기**로 ZIP을 그대로 선택합니다.
@@ -36,7 +36,7 @@
 
 저장소의 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 선택합니다. `main` 브랜치의 변경을 올리면 Pages 워크플로가 검사와 PC 도구 패키징을 거쳐 `web/`을 배포합니다. 배포가 끝난 주소는 **Settings → Pages** 또는 **Actions**에서 확인할 수 있습니다.
 
-`v1.0.0`처럼 `v`로 시작하는 태그를 올리면 PC 도구 ZIP을 GitHub Release로 게시합니다. 같은 Release에 GitHub Actions의 macOS 환경에서 빌드한 Mac 앱(`echo-pc-mac-arm64.zip`)도 함께 올립니다. Mac 앱은 Apple 개발자 인증서로 서명하지 않았으므로 처음 실행할 때 경고가 나옵니다. 저장소와 Pages의 공개 범위는 GitHub 설정을 따릅니다. 앱 자체에는 로그인 기능이 없습니다.
+`v1.0.0`처럼 `v`로 시작하는 태그를 올리면 PC 도구 소스 ZIP을 GitHub Release로 게시합니다. 같은 Release에 GitHub Actions의 Windows 환경에서 빌드한 단일 실행 파일(`echo-pc.exe`)과 macOS 환경에서 빌드한 Mac 앱(`echo-pc-mac-arm64.zip`)도 함께 올립니다. 두 앱 모두 코드 서명 인증서로 서명하지 않았으므로 처음 실행할 때 경고가 나옵니다. 저장소와 Pages의 공개 범위는 GitHub 설정을 따릅니다. 앱 자체에는 로그인 기능이 없습니다.
 
 ## 로컬 실행과 검사
 
@@ -58,7 +58,7 @@ PC 도구의 추가 실행 방법은 [pc/README.txt](pc/README.txt)를 참고하
 
 - 음성 인식은 기기에서 처리합니다. 모델 다운로드에는 인터넷과 디스크 공간이 필요합니다.
 - PC 모델은 `pc/models/`, 팟캐스트 원본은 `pc/downloads/`, 결과는 `pc/results/`에 저장합니다. 이 폴더들은 Git에서 제외합니다.
-- Mac 앱은 모델·원본·결과를 `~/Library/Application Support/Echo PC/`에 저장합니다. 앱의 **결과 폴더 열기**로 바로 열 수 있습니다.
+- Windows `echo-pc.exe`는 모델·원본·결과를 `%LOCALAPPDATA%\Echo PC\`에, Mac 앱은 `~/Library/Application Support/Echo PC/`에 저장합니다. 앱의 **결과 폴더 열기**로 바로 열 수 있습니다.
 - CPU로 실행할 수 있습니다. CUDA는 호환 NVIDIA GPU와 cuBLAS·cuDNN을 별도로 구성한 경우에 사용합니다.
 - macOS는 CPU로 실행합니다. Apple Silicon Mac은 macOS 14 이상, Intel Mac은 macOS 13 이상이 필요합니다.
 - 원본 음성이 180MB를 넘으면 연습 ZIP 대신 JSON 자막과 원본 음성을 별도로 옮깁니다.
@@ -72,6 +72,7 @@ PC 도구의 추가 실행 방법은 [pc/README.txt](pc/README.txt)를 참고하
 - `web/`: HTML/CSS/JavaScript 웹 앱
 - `pc/`: Python/Tkinter PC 도구
 - `scripts/package_pc.py`: 정해진 PC 소스만 ZIP으로 패키징
+- `scripts/build_win_exe.py`, `scripts/echo-pc-win.spec`: PyInstaller로 Python이 포함된 단일 `echo-pc.exe`를 빌드. Windows에서 `py -3.12 scripts/build_win_exe.py`로 실행
 - `scripts/build_mac_app.sh`, `scripts/echo-pc-mac.spec`: PyInstaller로 Python이 포함된 Mac 앱을 빌드. Apple Silicon Mac에서 `scripts/build_mac_app.sh python3.12`로 실행
 - Transformers.js: 브라우저 음성 인식, CDN에서 로드
 - faster-whisper: PC 음성 인식, 첫 실행 시 설치

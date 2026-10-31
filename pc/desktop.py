@@ -15,8 +15,10 @@ from podcast_dialog import PodcastDialog
 ROOT=Path(__file__).resolve().parent
 MAC=sys.platform=='darwin'
 FROZEN=getattr(sys,'frozen',False)
-# The self-contained Mac app bundle may be read-only or translocated, so its data lives in Application Support.
-DATA=Path.home()/'Library'/'Application Support'/'Echo PC' if FROZEN else ROOT
+# Frozen builds unpack to a read-only bundle (Mac) or a temp folder (Windows exe), so data lives in the user profile.
+if not FROZEN:DATA=ROOT
+elif MAC:DATA=Path.home()/'Library'/'Application Support'/'Echo PC'
+else:DATA=Path(os.environ.get('LOCALAPPDATA') or Path.home()/'AppData'/'Local')/'Echo PC'
 
 
 class App:
