@@ -4,7 +4,7 @@ from pathlib import Path
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-FILES=('desktop.py','transcribe.py','podcasts.py','podcast_dialog.py','start.cmd','start.command','requirements.txt','README.txt')
+FILES=('desktop.py','transcribe.py','podcasts.py','podcast_dialog.py','podcast_history.py','start.cmd','start.command','requirements.txt','README.txt')
 
 def main():
     parser=argparse.ArgumentParser()
