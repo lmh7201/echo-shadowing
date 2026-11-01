@@ -23,7 +23,7 @@ export function packSession(session,audio){
 }
 // Short and distinct per save so files moved to the phone never collide: <title>_<MMDD_HHMM>.echo.zip (mirrors pc/transcribe.py).
 export function bundleName(title,when=new Date()){
- const safe=Array.from(String(title).replace(/[\x00-\x1f<>:"/\\|?*]+/g,'_').replace(/^[ ._]+|[ ._]+$/g,'')).slice(0,10).join('').replace(/[ ._]+$/,'')||'echo',p=n=>String(n).padStart(2,'0');
+ const safe=Array.from(String(title).replace(/[\x00-\x1f<>:"/\\|?*]+/g,'_').replace(/^[ ._]+|[ ._]+$/g,'')).slice(0,20).join('').replace(/[ ._]+$/,'')||'echo',p=n=>String(n).padStart(2,'0');
  return `${safe}_${p(when.getMonth()+1)}${p(when.getDate())}_${p(when.getHours())}${p(when.getMinutes())}.echo.zip`;
 }
 export function unpackSession(bytes){
