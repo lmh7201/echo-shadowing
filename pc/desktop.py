@@ -48,7 +48,7 @@ class App:
         ttk.Button(source,text='↧ 팟캐스트에서 음성 받기 · Apple Podcasts / RSS',style='CardGhost.TButton',command=self.podcasts).pack(anchor='w',pady=(8,0))
         options=self.card(body,'2','인식 설정')
         grid=ttk.Frame(options,style='Inner.TFrame');grid.pack(fill='x')
-        self.model=tk.StringVar(value='large-v3');self.lang=tk.StringVar(value='ja');self.scope=tk.StringVar(value='앞 30초 시험');self.device=tk.StringVar(value='cpu')
+        self.model=tk.StringVar(value='large-v3');self.lang=tk.StringVar(value='ja');self.scope=tk.StringVar(value='전체 음성');self.device=tk.StringVar(value='cpu')
         for i,(label,var,values) in enumerate([('모델',self.model,['large-v3','turbo','medium']),('언어',self.lang,['ja','en','ko','zh','es','fr','de','auto']),('범위',self.scope,['앞 30초 시험','전체 음성']),('실행 장치',self.device,['cpu'] if MAC else ['cpu','cuda'])]):
             ttk.Label(grid,text=label,style='Field.TLabel').grid(row=0,column=i,sticky='w',padx=(0 if i==0 else 10,0))
             theme.combo(ttk.Combobox(grid,textvariable=var,values=values,state='readonly',width=12)).grid(row=1,column=i,padx=(0 if i==0 else 10,0),pady=(4,0),sticky='ew')
