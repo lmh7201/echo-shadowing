@@ -9,6 +9,7 @@ pc/models/
 pc/results/
 pc/downloads/
 pc/podcast-source.json
+pc/settings.json
 *.echo.zip
 *.echo.json
 *.srt

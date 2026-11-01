@@ -5,40 +5,44 @@ import tkinter as tk
 from tkinter import ttk,messagebox
 from podcasts import load_podcast,download_episode,DownloadCancelled,http_url
 from podcast_history import PodcastHistory
+from theme import wrap
 
 
 class PodcastDialog:
-    def __init__(self,parent,folder,on_download):
+    def __init__(self,parent,folder,on_download,theme):
         self.folder=Path(folder);self.on_download=on_download;self.events=queue.Queue();self.cancel=threading.Event();self.busy=False;self.closed=False;self.episodes=[];self.visible=[]
-        self.window=tk.Toplevel(parent);self.window.title('Echo · 팟캐스트에서 음성 받기');self.window.geometry('820x620');self.window.minsize(650,500)
-        body=ttk.Frame(self.window,padding=20);body.pack(fill='both',expand=True)
-        ttk.Label(body,text='링크 한 번으로, 다음부터는 에피소드만 선택',font=('',15,'bold')).pack(anchor='w')
-        ttk.Label(body,text='애플 팟캐스트 공유 링크 또는 공개 RSS를 넣어주세요. 한 번 불러온 방송은 ▾ 목록에 남고, ★ 즐겨찾기는 맨 위에 보입니다.',wraplength=760).pack(anchor='w',pady=10)
+        self.window=tk.Toplevel(parent);self.window.title('Echo · 팟캐스트에서 음성 받기');self.window.geometry('840x700');self.window.minsize(660,560);theme.window(self.window)
+        body=ttk.Frame(self.window,padding=(26,22,26,20));body.pack(fill='both',expand=True)
+        ttk.Label(body,text='링크 한 번으로, 다음부터는 에피소드만 선택',style='Title.TLabel').pack(anchor='w')
+        wrap(ttk.Label(body,text='애플 팟캐스트 공유 링크 또는 공개 RSS를 넣어주세요. 한 번 불러온 방송은 ▾ 목록에 남고, ★ 즐겨찾기는 맨 위에 보입니다.',style='Muted.TLabel')).pack(fill='x',pady=(6,16))
+        source=ttk.Frame(body,style='Card.TFrame',padding=(18,14,18,12));source.pack(fill='x')
+        ttk.Label(source,text='방송 링크',style='Field.TLabel').pack(anchor='w',pady=(0,4))
         self.history=PodcastHistory(self.folder/'podcast-source.json');self.choices=[]
-        self.url=tk.StringVar(value=self.history.last);row=ttk.Frame(body);row.pack(fill='x')
-        self.picker=ttk.Combobox(row,textvariable=self.url,postcommand=self.refresh_choices);self.picker.pack(side='left',fill='x',expand=True)
+        self.url=tk.StringVar(value=self.history.last);row=ttk.Frame(source,style='Inner.TFrame');row.pack(fill='x')
+        self.picker=theme.combo(ttk.Combobox(row,textvariable=self.url,postcommand=self.refresh_choices));self.picker.pack(side='left',fill='x',expand=True)
         self.picker.bind('<<ComboboxSelected>>',self.pick)
-        self.load=ttk.Button(row,text='에피소드 불러오기',command=self.fetch);self.load.pack(side='left',padx=(8,0))
-        saved=ttk.Frame(body);saved.pack(fill='x',pady=(8,0))
-        self.star=ttk.Button(saved,text='☆ 즐겨찾기',command=self.toggle_favorite);self.star.pack(side='left')
-        self.forget=ttk.Button(saved,text='목록에서 빼기',command=self.remove);self.forget.pack(side='left',padx=8)
-        self.saved_note=tk.StringVar();ttk.Label(saved,textvariable=self.saved_note,foreground='#637061').pack(side='left',padx=(4,0))
+        self.load=ttk.Button(row,text='에피소드 불러오기',style='Accent.TButton',command=self.fetch);self.load.pack(side='left',padx=(8,0))
+        saved=ttk.Frame(source,style='Inner.TFrame');saved.pack(fill='x',pady=(8,0))
+        self.star=ttk.Button(saved,text='☆ 즐겨찾기',style='CardGhost.TButton',command=self.toggle_favorite);self.star.pack(side='left')
+        self.forget=ttk.Button(saved,text='목록에서 빼기',style='CardGhost.TButton',command=self.remove);self.forget.pack(side='left',padx=4)
+        self.saved_note=tk.StringVar();ttk.Label(saved,textvariable=self.saved_note,style='Card.Muted.TLabel').pack(side='right')
         self.url.trace_add('write',lambda *_:self.refresh_saved());self.refresh_choices();self.refresh_saved()
+        episodes=ttk.Frame(body,style='Card.TFrame',padding=(18,14,18,14));episodes.pack(fill='both',expand=True,pady=12)
         self.heading=tk.StringVar(value='링크를 넣고 에피소드 불러오기를 누르세요.')
-        ttk.Label(body,textvariable=self.heading,wraplength=760).pack(anchor='w',pady=12)
-        searchrow=ttk.Frame(body);searchrow.pack(fill='x');ttk.Label(searchrow,text='제목 검색 ').pack(side='left')
+        wrap(ttk.Label(episodes,textvariable=self.heading,style='Card.Heading.TLabel')).pack(fill='x',pady=(0,10))
+        searchrow=ttk.Frame(episodes,style='Inner.TFrame');searchrow.pack(fill='x');ttk.Label(searchrow,text='제목 검색',style='Field.TLabel').pack(side='left',padx=(0,8))
         self.search=tk.StringVar();ttk.Entry(searchrow,textvariable=self.search).pack(side='left',fill='x',expand=True);self.search.trace_add('write',lambda *_:self.filter())
-        listframe=ttk.Frame(body);listframe.pack(fill='both',expand=True,pady=10)
-        self.list=tk.Listbox(listframe,font=('',11),exportselection=False,selectmode='browse');self.list.pack(side='left',fill='both',expand=True)
+        listframe=ttk.Frame(episodes,style='Card.TFrame',padding=1);listframe.pack(fill='both',expand=True,pady=(10,0))
+        self.list=theme.listbox(tk.Listbox(listframe,height=6,exportselection=False,selectmode='browse'));self.list.pack(side='left',fill='both',expand=True,padx=(6,0),pady=4)
         scroll=ttk.Scrollbar(listframe,command=self.list.yview);scroll.pack(side='right',fill='y');self.list.configure(yscrollcommand=scroll.set)
         self.progress=ttk.Progressbar(body,maximum=100);self.progress.pack(fill='x')
         self.status=tk.StringVar(value='에피소드를 불러온 뒤 원하는 회차를 선택하세요.')
-        ttk.Label(body,textvariable=self.status,wraplength=760).pack(anchor='w',pady=10)
+        wrap(ttk.Label(body,textvariable=self.status)).pack(fill='x',pady=10)
         actions=ttk.Frame(body);actions.pack(fill='x')
-        self.download=ttk.Button(actions,text='선택한 음성 받기 → 자막 생성에 사용',state='disabled',command=self.get);self.download.pack(side='left')
+        self.download=ttk.Button(actions,text='선택한 음성 받기 → 자막 생성에 사용',style='Accent.TButton',state='disabled',command=self.get);self.download.pack(side='left')
         self.stop=ttk.Button(actions,text='중지',state='disabled',command=self.cancel.set);self.stop.pack(side='left',padx=8)
         ttk.Button(actions,text='닫기',command=self.close).pack(side='right')
-        ttk.Label(body,text='원본 파일을 변환 없이 저장합니다. 공개 RSS로 배포되는 에피소드만 지원합니다.',foreground='#637061').pack(anchor='w',pady=(12,0))
+        ttk.Label(body,text='원본 파일을 변환 없이 저장합니다. 공개 RSS로 배포되는 에피소드만 지원합니다.',style='Muted.TLabel').pack(anchor='w',pady=(12,0))
         self.window.protocol('WM_DELETE_WINDOW',self.close);self.window.after(100,self.poll)
 
     @staticmethod
