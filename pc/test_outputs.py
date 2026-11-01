@@ -32,7 +32,7 @@ class OutputTests(unittest.TestCase):
         when=datetime(2026,11,1,15,30)
         self.assertEqual(bundle_name('第12回: Q&A / 질문?',when),'第12回_ Q&A _ 질문_1101_1530.echo.zip')
         self.assertEqual(bundle_name(' ..',when),'echo_1101_1530.echo.zip')
-        self.assertEqual(bundle_name('あ'*80,when),'あ'*20+'_1101_1530.echo.zip')
+        self.assertEqual(bundle_name('あ'*80,when),'あ'*30+'_1101_1530.echo.zip')
 
     def test_timestamp_rollover(self):
         self.assertEqual(stamp(59.9996),'00:01:00,000')

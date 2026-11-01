@@ -18,7 +18,7 @@ def stamp(seconds):
 
 def bundle_name(title, when=None):
     """Short and distinct per run so files moved to the phone never collide: <title>_<MMDD_HHMM>.echo.zip."""
-    safe=re.sub(r'[\x00-\x1f<>:"/\\|?*]+','_',title).strip(' ._')[:20].rstrip(' ._') or 'echo'
+    safe=re.sub(r'[\x00-\x1f<>:"/\\|?*]+','_',title).strip(' ._')[:30].rstrip(' ._') or 'echo'
     return f'{safe}_{(when or datetime.now()):%m%d_%H%M}.echo.zip'
 
 

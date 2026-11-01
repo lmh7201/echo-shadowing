@@ -16,7 +16,7 @@ assert.throws(()=>packSession({...session,audioFile:'../secret.wav'},audio));
 const when=new Date(2026,10,1,15,30);
 assert.equal(bundleName('第12回: Q&A / 질문?',when),'第12回_ Q&A _ 질문_1101_1530.echo.zip');
 assert.equal(bundleName(' ..',when),'echo_1101_1530.echo.zip');
-assert.equal(bundleName('😀'.repeat(80),when),'😀'.repeat(20)+'_1101_1530.echo.zip');
+assert.equal(bundleName('😀'.repeat(80),when),'😀'.repeat(30)+'_1101_1530.echo.zip');
 if(process.argv[2]){
  const pc=unpackSession(new Uint8Array(fs.readFileSync(process.argv[2])));
  assert.ok(pc.session.segments.length);assert.ok(pc.session.segments.some(s=>s.words?.length));
