@@ -84,8 +84,10 @@ def run(args):
 
 
 def main():
-    for stream in (sys.stdout,sys.stderr):  # a cp1252 console (GitHub's Windows runner) must not crash a run over a Korean progress line
-        try:stream.reconfigure(errors='replace')
+    # Pipes get UTF-8: the frozen exe ignores PYTHONIOENCODING and would write the ANSI code page (cp949, cp1252 on
+    # GitHub's runner), garbling Japanese for the desktop app. Consoles keep their encoding but must not crash a run.
+    for stream in (sys.stdout,sys.stderr):
+        try:stream.reconfigure(errors='replace',**({} if stream.isatty() else {'encoding':'utf-8'}))
         except (AttributeError,ValueError):pass
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('audio');p.add_argument('--output',required=True)
